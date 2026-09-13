@@ -1435,16 +1435,17 @@ build_analysis_blocks(const AnalysisContext &ctx, std::span<const uint64_t> extr
 
 [[nodiscard]] std::vector<uint8_t>
 explicit_external_entries(const std::vector<AnalysisBlock> &blocks,
-                          std::span<const uint64_t> sorted_extra_leaders) {
+                          std::span<const uint64_t> sorted_extra_leaders,
+                          ExternalEntryPolicy entry_policy) {
   std::vector<uint8_t> entries(blocks.size(), 0);
-  if (!entries.empty())
+  if (!entries.empty() && entry_policy == ExternalEntryPolicy::InferPredecessorless)
     entries[0] = 1;
   // Analysis blocks are built from the ordered instruction stream. Both input
   // sequences are therefore ascending and can be matched in one merge pass.
   assert(std::ranges::is_sorted(blocks, {}, &AnalysisBlock::offset));
   assert(std::ranges::is_sorted(sorted_extra_leaders));
   auto leader = sorted_extra_leaders.begin();
-  for (size_t block_index = 1; block_index < blocks.size(); ++block_index) {
+  for (size_t block_index = 0; block_index < blocks.size(); ++block_index) {
     while (leader != sorted_extra_leaders.end() && *leader < blocks[block_index].offset)
       ++leader;
     if (leader != sorted_extra_leaders.end() && *leader == blocks[block_index].offset)
@@ -1919,7 +1920,7 @@ void scan_block(AnalysisContext &ctx, size_t block_index, std::vector<AnalysisBl
       predecessors[successor].push_back(block_index);
   }
   const std::vector<uint8_t> external_entries =
-      explicit_external_entries(blocks, sorted_extra_leaders);
+      explicit_external_entries(blocks, sorted_extra_leaders, entry_policy);
 
   // Dataflow results are consumed only by pending cross-block branches. A pair
   // that is built or killed somewhere but never reaches such a consumer cannot
@@ -2637,7 +2638,7 @@ void recover_vector_lane_stashed_pcs(AnalysisContext &ctx, const std::vector<Ana
     return;
   const size_t initial_recovered_size = recovered.size();
   const std::vector<uint8_t> external_entries =
-      explicit_external_entries(blocks, sorted_extra_leaders);
+      explicit_external_entries(blocks, sorted_extra_leaders, entry_policy);
 
   std::unordered_map<uint64_t, size_t> instruction_by_offset;
   instruction_by_offset.reserve(ctx.insts.size());

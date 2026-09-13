@@ -22,7 +22,8 @@ enum class ExternalEntryPolicy : uint8_t {
   /// This preserves conservative recovery when callers do not have a complete
   /// list of entries for all functions sharing one .text section.
   InferPredecessorless,
-  /// Treat only section entry and caller-supplied leaders as external entries.
+  /// Treat only caller-supplied leaders as external entries, including the first block
+  /// only when it appears in that list.
   /// Callers may use this when their supplied leader list contains every
   /// externally reachable entry; other predecessorless blocks remain unreachable.
   ExplicitOnly,
