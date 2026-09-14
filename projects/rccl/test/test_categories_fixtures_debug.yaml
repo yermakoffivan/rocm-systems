@@ -15,6 +15,7 @@ test_categories:
       - "Alloc.*"
       - "ParamTests.*"
       - "ParameterApiTests.*"
+      - "ParameterApiTypedTests*"
       - "EnqueueTests.*"
       - "ProxyTests.*"
       - "PatAGAlgorithmTests.*"
