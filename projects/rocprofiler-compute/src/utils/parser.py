@@ -390,7 +390,8 @@ def apply_dispatch_filter(df: pd.DataFrame, workload: schema.Workload) -> pd.Dat
             # '> n' skips the first n dispatches, so n is a number of
             # dispatches, not an id.
             skipped = int(re.match(r"\>\s*(\d+)", dispatch_id).group(1))
-            valid = 0 <= skipped <= len(available_dispatch_ids)
+            min_id, max_id = min(available_dispatch_ids), max(available_dispatch_ids)
+            valid = min_id <= skipped <= max_id
         else:
             valid = int(dispatch_id) in available_dispatch_ids
         if not valid:
